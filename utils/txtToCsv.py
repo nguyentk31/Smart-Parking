@@ -6,7 +6,7 @@ import csv
 def convert_txt_to_csv(locationfile):
 
  # Read each line in txt file and write csv file
-  with open(locationfile, 'r') as input, open('dataset.csv', 'w', newline='') as output:
+  with open(locationfile, 'r') as input, open('dataset/dataset.csv', 'w', newline='') as output:
     writer = csv.writer(output)
     for index, line in enumerate(input):
       # Set dataset type
