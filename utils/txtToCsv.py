@@ -27,10 +27,10 @@ def convert_txt_to_csv(filepath):
       if image is not None:
         img_height, img_width, _ = image.shape
       
-      # Calculate and write a row of file csv
-      x, y, width, height = int(x), int(y), int(width), int(height)
-      xMin, yMin, xMax, yMax = x/img_width, y/img_height, (x+width)/img_width, (y+height)/img_height
-      writer.writerow([data_type, imageURL, label, xMin, yMin, '', '', xMax, yMax, '', ''])
+        # Calculate and write a row of file csv
+        x, y, width, height = int(x), int(y), int(width), int(height)
+        xMin, yMin, xMax, yMax = x/img_width, y/img_height, (x+width)/img_width, (y+height)/img_height
+        writer.writerow([data_type, imageURL, label, xMin, yMin, '', '', xMax, yMax, '', ''])
 
 # Example usage
 if __name__ == '__main__':
