@@ -26,7 +26,7 @@ train_data, validation_data, test_data = object_detector.DataLoader.from_csv('/c
 spec = model_spec.get('efficientdet_lite0')
 
 # Train the TensorFlow model with the training data
-model = object_detector.create(train_data, model_spec=spec, batch_size=8, train_whole_model=True, epochs=50, validation_data=validation_data)
+model = object_detector.create(train_data, model_spec=spec, batch_size=4, train_whole_model=True, epochs=20, validation_data=validation_data)
 
 # Evaluate the model with the validation data
 eval_result = model.evaluate(test_data)
