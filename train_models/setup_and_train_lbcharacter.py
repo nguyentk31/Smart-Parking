@@ -20,10 +20,10 @@ print(tf.__version__)
 print()
 
 # Load the dataset
-train_data, validation_data, test_data = object_detector.DataLoader.from_csv('/content/dataset/dataset.csv')
+train_data, validation_data, test_data = object_detector.DataLoader.from_csv('/content/process_dataset2/dataset2.csv')
 
 # Select a model architecture
-spec = model_spec.get('efficientdet_lite0')
+spec = model_spec.get('efficientdet_lite4')
 
 # Train the TensorFlow model with the training data
 model = object_detector.create(train_data, model_spec=spec, batch_size=4, train_whole_model=True, epochs=20, validation_data=validation_data)
@@ -40,10 +40,10 @@ for label, metric_value in eval_result.items():
 print()
 
 # Export the model
-model.export(export_dir='.', tflite_filename='lite0.tflite')
+model.export(export_dir='.', tflite_filename='lite4.tflite')
 
 # Evaluate the tflite model
-tflite_eval_result = model.evaluate_tflite('lite0.tflite', test_data)
+tflite_eval_result = model.evaluate_tflite('lite4.tflite', test_data)
 
 # Print COCO metrics for tflite
 print("COCO metrics tflite")
