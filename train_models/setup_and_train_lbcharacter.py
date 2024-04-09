@@ -20,7 +20,7 @@ print(tf.__version__)
 print()
 
 # Load the dataset
-train_data, validation_data, test_data = object_detector.DataLoader.from_csv('/content/process_dataset2/dataset2.csv')
+train_data, validation_data, test_data = object_detector.DataLoader.from_csv('/content/dataset2_processed/dataset2.csv')
 
 # Select a model architecture
 spec = model_spec.get('efficientdet_lite4')
