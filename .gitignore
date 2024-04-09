@@ -1,8 +1,11 @@
 # my venv to run this project
 myenv
 
-# my location file in txt extension
-location.txt
-
 # my dataset
-dataset
+dataset*
+
+# labelImg
+labelImg
+
+# Test on docker 
+test_on_docker
