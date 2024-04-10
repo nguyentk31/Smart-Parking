@@ -2,10 +2,13 @@
 myenv
 
 # my dataset
-dataset*
+lb_*
 
 # labelImg
 labelImg
 
 # Test on docker 
 test_on_docker
+
+# Caching
+cache
