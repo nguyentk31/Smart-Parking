@@ -20,7 +20,7 @@ print(tf.__version__)
 print()
 
 # Load the dataset
-train_data, validation_data, test_data = object_detector.DataLoader.from_csv('/content/dataset2_processed/dataset2.csv')
+train_data, validation_data, test_data = object_detector.DataLoader.from_csv('/content/lb_characters_dataset/lb_characters_dataset.csv')
 
 # Select a model architecture
 spec = model_spec.get('efficientdet_lite4')
@@ -40,10 +40,10 @@ for label, metric_value in eval_result.items():
 print()
 
 # Export the model
-model.export(export_dir='.', tflite_filename='lite4.tflite')
+model.export(export_dir='.', tflite_filename='lpcharacters_detection_model.tflite')
 
 # Evaluate the tflite model
-tflite_eval_result = model.evaluate_tflite('lite4.tflite', test_data)
+tflite_eval_result = model.evaluate_tflite('lpcharacters_detection_model.tflite', test_data)
 
 # Print COCO metrics for tflite
 print("COCO metrics tflite")
