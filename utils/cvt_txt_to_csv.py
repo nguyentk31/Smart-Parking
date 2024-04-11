@@ -2,7 +2,6 @@ import os
 import csv
 
 def convert_txt_to_csv(dataset_dir):
-  train_dir = '/content'
 
   index = 0
   data_type = img_path = label = ''
@@ -16,7 +15,7 @@ def convert_txt_to_csv(dataset_dir):
       if file.endswith('txt'):
         txt_filename, _ = os.path.splitext(file)
         img_filename = txt_filename+'.jpg'
-        img_path = f'{train_dir}/{dataset_dir}/{img_filename}'
+        img_path = f'./{dataset_dir}/{img_filename}'
 
         if (index < 1826):
           data_type = 'TRAIN'
@@ -40,4 +39,4 @@ def convert_txt_to_csv(dataset_dir):
               writer.writerow([data_type, img_path, label, xmin, ymin, '', '', xmax, ymax, '', ''])
 
 if __name__ == '__main__':
-  convert_txt_to_csv('lb_characters_dataset')
+  convert_txt_to_csv('lp_characters_dataset')

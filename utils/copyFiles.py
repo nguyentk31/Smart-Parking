@@ -11,5 +11,5 @@ def copyFiles(src_dir, dest_dir):
 
 if __name__ == '__main__':
   src_dir = 'yolo_plate_ocr_dataset'
-  dest_dir = 'lb_characters_dataset'
+  dest_dir = 'lp_characters_dataset'
   copyFiles(src_dir, dest_dir)

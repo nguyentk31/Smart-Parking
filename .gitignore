@@ -2,7 +2,7 @@
 myenv
 
 # my dataset
-lb_*
+lp_*dataset
 
 # labelImg
 labelImg

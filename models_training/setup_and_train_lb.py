@@ -1,5 +1,6 @@
 import numpy as np
 import os
+# from google.colab import files
 
 from tflite_model_maker.config import ExportFormat, QuantizationConfig
 from tflite_model_maker import model_spec
@@ -20,7 +21,7 @@ print(tf.__version__)
 print()
 
 # Load the dataset
-train_data, validation_data, test_data = object_detector.DataLoader.from_csv('/content/dataset/dataset.csv')
+train_data, validation_data, test_data = object_detector.DataLoader.from_csv('./lp_dataset/lp_dataset.csv')
 
 # Select a model architecture
 spec = model_spec.get('efficientdet_lite0')
@@ -40,12 +41,15 @@ for label, metric_value in eval_result.items():
 print()
 
 # Export the model
-model.export(export_dir='.', tflite_filename='lite0.tflite')
+model.export(export_dir='.', tflite_filename='lp_detection_model.tflite')
 
 # Evaluate the tflite model
-tflite_eval_result = model.evaluate_tflite('lite0.tflite', test_data)
+tflite_eval_result = model.evaluate_tflite('lp_detection_model.tflite', test_data)
 
 # Print COCO metrics for tflite
 print("COCO metrics tflite")
 for label, metric_value in tflite_eval_result.items():
     print(f"{label}: {metric_value}")
+
+# Download model
+# files.download('lp_detection_model.tflite')

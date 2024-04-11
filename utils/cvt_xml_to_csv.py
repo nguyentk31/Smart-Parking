@@ -5,8 +5,6 @@ import csv
 # Convert xml annotation files to dataset csv file
 def convert_xml_to_csv(dataset_dir):
 
-  # directory on colab
-  train_dir = '/content'
   data_type = ''
   index = 0
   check = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
@@ -41,7 +39,7 @@ def convert_xml_to_csv(dataset_dir):
           xmax = int(bbox[2].text)/img_width
           ymax = int(bbox[3].text)/img_height
 
-          writer.writerow([data_type, f'{train_dir}/dataset2_processed/{filename}', name, xmin, ymin, '', '', xmax, ymax, '', ''])
+          writer.writerow([data_type, f'./dataset2_processed/{filename}', name, xmin, ymin, '', '', xmax, ymax, '', ''])
 
           
   print(err)
