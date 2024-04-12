@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from google.colab import files
+# from google.colab import files
 
 from tflite_model_maker.config import ExportFormat, QuantizationConfig
 from tflite_model_maker import model_spec
@@ -54,4 +54,4 @@ for label, metric_value in tflite_eval_result.items():
     print(f"{label}: {metric_value}")
 
 # Download model
-files.download('lpcharacters_detection_model.tflite')
+# files.download('lpcharacters_detection_model.tflite')
