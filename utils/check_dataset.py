@@ -6,7 +6,7 @@ import argparse
 alphanumeric        = ['0',  '1',  '2',  '3',  '4',  '5',  '6',  '7',  '8',  '9',  'A',   'B',   'C',   'D',   'E',   'F',   'G',   'H',   'I',   'J',   'K',   'L',   'M',   'N',   'O',   'P',   'Q',   'R',   'S',   'T',   'U',   'V',   'W',   'X',   'Y',   'Z']
 alphanumeric_index  = ['0',  '1',  '2',  '3',  '4',  '5',  '6',  '7',  '8',  '9',  '10',  '11',  '12',  '13',  '14',  '15',  '16',  '17',  '18',  '19',  '20',  '21',  '22',  '23',  '24',  '25',  '26',  '27',  '28',  '29',  '30',  '31',  '32',  '33',  '34',  '35']
 
-def check(dir: str, index: int):
+def check(dir: str, index: int, nolabel: bool):
 
   dir_name = os.path.basename(dir)
   all_lines = []
@@ -44,11 +44,13 @@ def check(dir: str, index: int):
       xmax = int(float(xmax)*img_width)
       ymax = int(float(ymax)*img_height)
 
-      label = alphanumeric[int(label_idx)]
-
       image = cv2.putText(image, str(index+1), (0, 30), cv2.FONT_HERSHEY_COMPLEX, 1, (255,255,255))
       image = cv2.rectangle(image, (xmin, ymin), (xmax, ymax), (255, 0, 0), 2)
-      image = cv2.putText(image, label, (xmin, ymin+30), cv2.FONT_HERSHEY_COMPLEX, 2, (0,0,255), 3)
+
+      if (not nolabel):
+        label = alphanumeric[int(label_idx)]
+        image = cv2.putText(image, label, (xmin, ymin+30), cv2.FONT_HERSHEY_COMPLEX, 2, (0,0,255), 3)
+
       cv2.imshow('Checking', image)
 
       key = cv2.waitKey()
@@ -63,7 +65,7 @@ def check(dir: str, index: int):
         print('Wrong line: ', f'{dir}/{dir}.csv', index+1)
       elif (key == 27): # ESC key
         print('Stop at line: ', index+1)
-        with open(f'cache/{dir_name}_idx.pkl', 'wb') as f:
+        with open(f'.cache/{dir_name}_idx.pkl', 'wb') as f:
           pickle.dump(index, f)
         cv2.destroyAllWindows()
         return
@@ -77,7 +79,7 @@ def check(dir: str, index: int):
         all_lines_count = len(all_lines)
         index = index if index < all_lines_count else all_lines_count
 
-def main(dir: str, line: int):
+def main(dir: str, line: int, nolabel: bool):
 
   dir = dir.replace('\\', '/') # replace \ -> /
   f_arr = [f for f in dir.split('/') if f] # only directory
@@ -85,14 +87,14 @@ def main(dir: str, line: int):
 
   if (line == 0):
     try:
-      with open(f'cache/{os.path.basename(dir)}_idx.pkl', 'rb') as f:
+      with open(f'.cache/{os.path.basename(dir)}_idx.pkl', 'rb') as f:
         index = pickle.load(f)
     except:
       index = 1
   else:
     index = line-1
 
-  check(dir, index)
+  check(dir, index, nolabel)
 
 
 if __name__ == '__main__':
@@ -102,13 +104,16 @@ if __name__ == '__main__':
       '--path',
       help='Path of directory name of dataset.',
       required=True)
-      # default='lb_characters_dataset')
   parser.add_argument(
       '--line',
       help='Line number you want to start.',
       required=False,
       type=int,
       default=0)
+  parser.add_argument(
+      '-nolabel',
+      help='If you don\'t want to show label.',
+      action='store_true')
   args = parser.parse_args()
 
-  main(args.path, args.line)
+  main(args.path, args.line, args.nolabel)

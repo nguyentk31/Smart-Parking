@@ -1,0 +1,40 @@
+sudo -i
+
+wget https://repo.anaconda.com/miniconda/Miniconda3-py39_23.3.1-0-Linux-x86_64.sh
+chmod +x Miniconda3-py39_23.3.1-0-Linux-x86_64.sh
+./Miniconda3-py39_23.3.1-0-Linux-x86_64.sh -b -f -p /usr/local
+conda update -q conda -y
+
+python3
+import sys
+sys.path.append('/usr/local/lib/python3.9/site-packages')
+exit()
+
+conda create -n myenv python=3.9 -y
+
+wget https://mybucketk31.s3.amazonaws.com/lp_characters_dataset.zip
+apt install unzip
+unzip -q lp_characters_dataset.zip
+rm -rf lp_characters_dataset.zip
+ls lp_characters_dataset -la
+
+wget https://raw.githubusercontent.com/nguyentk31/Smart-Parking/main/models_training/setup_and_train_lpcharacter.py
+ls -la
+
+eval "$(conda shell.bash hook)"
+conda activate myenv
+pip install numpy==1.23.0
+pip install tflite-model-maker
+pip install pycocotools
+pip install ipykernel
+
+screen
+
+screen -list
+
+ctrl + a + d
+
+screen -r 
+
+python setup_and_train_lpcharacter.py
+

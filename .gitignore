@@ -1,5 +1,6 @@
-# my venv to run this project
-myenv
+# my venv to run this project and my cached var
+.myenv
+.cache
 
 # my dataset
 lp_*dataset
@@ -9,6 +10,3 @@ labelImg
 
 # Test on docker 
 test_on_docker
-
-# Caching
-cache

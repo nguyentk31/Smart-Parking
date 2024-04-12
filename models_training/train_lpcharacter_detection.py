@@ -1,6 +1,6 @@
 import numpy as np
 import os
-# from google.colab import files
+from google.colab import files
 
 from tflite_model_maker.config import ExportFormat, QuantizationConfig
 from tflite_model_maker import model_spec
@@ -15,7 +15,7 @@ tf.get_logger().setLevel('ERROR')
 from absl import logging
 logging.set_verbosity(logging.ERROR)
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # Confirm TF Version
 print("\nTensorflow Version:")
@@ -29,7 +29,7 @@ train_data, validation_data, test_data = object_detector.DataLoader.from_csv('./
 spec = model_spec.get('efficientdet_lite4')
 
 # Train the TensorFlow model with the training data
-model = object_detector.create(train_data, model_spec=spec, batch_size=4, train_whole_model=True, epochs=20, validation_data=validation_data)
+model = object_detector.create(train_data, model_spec=spec, batch_size=4, train_whole_model=True, epochs=2, validation_data=validation_data)
 
 # Evaluate the model with the validation data
 eval_result = model.evaluate(test_data)
@@ -54,4 +54,4 @@ for label, metric_value in tflite_eval_result.items():
     print(f"{label}: {metric_value}")
 
 # Download model
-# files.download('lpcharacters_detection_model.tflite')
+files.download('lpcharacters_detection_model.tflite')
