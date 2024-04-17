@@ -1,6 +1,5 @@
 import numpy as np
 import os
-# from google.colab import files
 
 from tflite_model_maker.config import ExportFormat, QuantizationConfig
 from tflite_model_maker import model_spec
@@ -23,13 +22,13 @@ print(tf.__version__)
 print()
 
 # Load the dataset
-train_data, validation_data, test_data = object_detector.DataLoader.from_csv('./lp_characters_dataset/lp_characters_dataset.csv')
+train_data, validation_data, test_data = object_detector.DataLoader.from_csv('./csvfiles/lp_characters_dataset_assigned.csv')
 
 # Select a model architecture
-spec = model_spec.get('efficientdet_lite4')
+spec = model_spec.get('efficientdet_lite2')
 
 # Train the TensorFlow model with the training data
-model = object_detector.create(train_data, model_spec=spec, batch_size=4, train_whole_model=True, epochs=2, validation_data=validation_data)
+model = object_detector.create(train_data, model_spec=spec, batch_size=4, train_whole_model=True, epochs=50, validation_data=validation_data)
 
 # Evaluate the model with the validation data
 eval_result = model.evaluate(test_data)
@@ -52,6 +51,3 @@ tflite_eval_result = model.evaluate_tflite('lpcharacters_detection_model.tflite'
 print("COCO metrics tflite")
 for label, metric_value in tflite_eval_result.items():
     print(f"{label}: {metric_value}")
-
-# Download model
-# files.download('lpcharacters_detection_model.tflite')

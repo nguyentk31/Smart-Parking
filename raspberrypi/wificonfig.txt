@@ -1,0 +1,13 @@
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+
+network={
+	ssid="Phuong"
+	psk=e3871b346204def091c12e0d8a47be952c70cd64043a2f8074af03878f4aafaf
+}
+
+network={
+	ssid="myWifi"
+	psk="myWifi31"
+	key_mgmt=WPA-PSK
+}

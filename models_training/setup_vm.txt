@@ -12,23 +12,28 @@ exit()
 
 conda create -n myenv python=3.9 -y
 
-wget https://mybucketk31.s3.amazonaws.com/lp_characters_dataset.zip
-apt install unzip
-unzip -q lp_characters_dataset.zip
-rm -rf lp_characters_dataset.zip
-ls lp_characters_dataset -la
+cat <<EOF >> mylist
+https://mybucketk31.s3.amazonaws.com/csvfiles.zip
+https://mybucketk31.s3.amazonaws.com/lp_dataset.zip
+https://mybucketk31.s3.amazonaws.com/lp_characters_dataset.zip
+EOF
 
-wget https://raw.githubusercontent.com/nguyentk31/Smart-Parking/main/models_training/setup_and_train_lpcharacter.py
+wget -i mylist
+
+apt install unzip
+
+unzip -q '*.zip' && rm -rf *.zip
+
+ls -la
+
+wget https://raw.githubusercontent.com/nguyentk31/Smart-Parking/main/models_training/train_lpcharacter_detection.py
 ls -la
 
 eval "$(conda shell.bash hook)"
 conda activate myenv
-pip install numpy==1.23.0
-pip install tflite-model-maker
-pip install pycocotools
-pip install ipykernel
+pip install numpy==1.23.0 tflite-model-maker pycocotools ipykernel
 
-screen
+screen -L -Logfile mylog.txt
 
 screen -list
 
@@ -36,5 +41,6 @@ ctrl + a + d
 
 screen -r 
 
-python setup_and_train_lpcharacter.py
+python3 train_lpcharacters_detection.py
 
+cp mylog.txt lpcharacters_detection_model.tflite /home/g21522397/

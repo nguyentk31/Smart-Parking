@@ -3,10 +3,4 @@
 .cache
 
 # my dataset
-lp_*dataset
-
-# labelImg
-labelImg
-
-# Test on docker 
-test_on_docker
+lp_*dataset*
