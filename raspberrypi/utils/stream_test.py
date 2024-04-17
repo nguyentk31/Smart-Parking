@@ -3,7 +3,7 @@ import logging
 import socketserver
 from http import server
 from threading import Condition
-import raspberrypi.utils.common_vars_consts as cvc
+import utils.common_vars_consts as cvc
 
 PAGE = """\
 <html>
@@ -11,19 +11,19 @@ PAGE = """\
 <title>picamera2 MJPEG streaming</title>
 </head>
 <body style="height:100%;">
-<div style="height:100%; width:50%; float:left;">
-  <h1>Main Camera</h1>
-  <img src="stream1.mjpg"/>
+<div style="height:100%; width:50%; float: left">
+    <h1>Main Camera</h1>
+    <img src="stream1.mjpg">
 </div>
-<div style="height:100%; width:50%; float:left;">
-  <div style="height:50%;>
-    <h1>License plate detection</h1>
-    <img src="stream2.mjpg" />
-  </div>
-  <div style="height:50%;>
-    <h1>License plate recognition</h1>
-    <img src="stream3.mjpg" />
-  </div>
+<div style="height:100%; width:50%; float: left">
+    <div style="height:50%;">
+        <h1>License plate detection</h1>
+        <img src="stream2.mjpg">
+    </div>
+    <div style="height:50%;">
+        <h1>License plate OCR</h1>
+        <img src="stream3.mjpg">
+    </div>    
 </div>
 </body>
 </html>
@@ -63,12 +63,12 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
         while True:
           with stream1.condition:
             stream1.condition.wait()
-            frame = stream1.frame
+            frame1 = stream1.frame
           self.wfile.write(b'--FRAME\r\n')
           self.send_header('Content-Type', 'image/jpeg')
-          self.send_header('Content-Length', len(frame))
+          self.send_header('Content-Length', len(frame1))
           self.end_headers()
-          self.wfile.write(frame)
+          self.wfile.write(frame1)
           self.wfile.write(b'\r\n')
       except Exception as e:
         logging.warning(
@@ -79,18 +79,21 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
       self.send_header('Age', 0)
       self.send_header('Cache-Control', 'no-cache, private')
       self.send_header('Pragma', 'no-cache')
-      self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
+      self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME2')
       self.end_headers()
       try:
         while True:
           with stream2.condition:
             stream2.condition.wait()
             frame2 = stream2.frame
-          self.wfile.write(b'--FRAME\r\n')
+          self.wfile.write(b'--FRAME2\r\n')
           self.send_header('Content-Type', 'image/jpeg')
           self.send_header('Content-Length', len(frame2))
           self.end_headers()
-          self.wfile.write(frame2)
+          if (frame2 is not None):
+            self.wfile.write(frame2)
+          else:
+            self.wfile.write(b'nothing')
           self.wfile.write(b'\r\n')
       except Exception as e:
         logging.warning(
@@ -101,18 +104,21 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
       self.send_header('Age', 0)
       self.send_header('Cache-Control', 'no-cache, private')
       self.send_header('Pragma', 'no-cache')
-      self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
+      self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME3')
       self.end_headers()
       try:
         while True:
           with stream3.condition:
             stream3.condition.wait()
-            frame2 = stream3.frame
-          self.wfile.write(b'--FRAME\r\n')
+            frame3 = stream3.frame
+          self.wfile.write(b'--FRAME3\r\n')
           self.send_header('Content-Type', 'image/jpeg')
-          self.send_header('Content-Length', len(frame2))
+          self.send_header('Content-Length', len(frame3))
           self.end_headers()
-          self.wfile.write(frame2)
+          if (frame3 is not None):
+            self.wfile.write(frame3)
+          else:
+            self.wfile.write(b'nothing')
           self.wfile.write(b'\r\n')
       except Exception as e:
         logging.warning(

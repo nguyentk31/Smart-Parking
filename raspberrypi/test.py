@@ -3,9 +3,9 @@ from time import sleep
 import numpy as np
 import cv2
 from threading import Thread
-from Streaming import stream1, stream2, stream3, streaming_server
-from utils.LP_Recognition import LP_Detection, LP_Ocr
-import raspberrypi.utils.common_vars_consts as cvc
+from utils.stream_test import stream1, stream2, stream3, streaming_server
+from utils.lp_recognition import LP_Detection, LP_Ocr
+import utils.common_vars_consts as cvc
 
 from picamera2 import Picamera2, MappedArray
 from picamera2.encoders import JpegEncoder
@@ -14,18 +14,18 @@ from picamera2.outputs import FileOutput
 # Draw focus arae
 def draw_bound(request):
   with MappedArray(request, "main") as m:
-    cv2.rectangle(m.array, PROCESS_RECT[0:2], PROCESS_RECT[2:4], (0, 0, 255), 1)
+    cv2.rectangle(m.array, cvc.PROCESS_RECT[0:2], cvc.PROCESS_RECT[2:4], (0, 0, 255), 1)
 
 def Process_image(detection_threshold, recognition_threshold):
   while True:
-    if (QUIT_SIGNAL):
+    if (cvc.QUIT_SIGNAL):
       print('Stop process image!')
       break
-    elif (REQUEST):
+    elif (cvc.REQUEST):
       try:
         image = PICAM2.capture_array()
         print('capture done')
-        process_image = image[PROCESS_RECT[1]: PROCESS_RECT[3],PROCESS_RECT[0]:PROCESS_RECT[2]]
+        process_image = image[cvc.PROCESS_RECT[1]: cvc.PROCESS_RECT[3],cvc.PROCESS_RECT[0]:cvc.PROCESS_RECT[2]]
         result = LP_DETECTION.detect(process_image, detection_threshold)
         
         if result is None:
@@ -33,13 +33,13 @@ def Process_image(detection_threshold, recognition_threshold):
           continue
 
         bbox, score = result
-        (xmin, ymin, xmax, ymax) = bbox + np.tile(PROCESS_ORG_COOR, 2)
+        (xmin, ymin, xmax, ymax) = bbox + np.tile(cvc.PROCESS_ORG_COOR, 2)
         ctx = (xmin + xmax) // 2 
         cty = (ymin + ymax) // 2
         d = max((xmax-xmin)//2, (ymax-ymin)//2)
         xmin, xmax, ymin, ymax = ctx - d, ctx + d, cty - d, cty + d
         try:
-          plate_img = cv2.resize(image[ymin:ymax, xmin:xmax], FOCUS_SIZE)
+          plate_img = cv2.resize(image[ymin:ymax, xmin:xmax], cvc.FOCUS_SIZE)
         except Exception as e:
           print(e)
           print('plate image coordinates invalid!')
@@ -47,7 +47,7 @@ def Process_image(detection_threshold, recognition_threshold):
         
         scores, bboxes, characters = LP_OCR.Ocr(plate_img, recognition_threshold)
 
-        cv2.putText(plate_img, str(score), (0, FOCUS_SIZE[1]), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0,0,255), 2)
+        cv2.putText(plate_img, str(score), (0, cvc.FOCUS_SIZE[1]), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0,0,255), 2)
         # Write license plate to stream2
         stream2.write(cv2.imencode('.jpeg', plate_img)[1].tobytes())
         print('stream2 written')
@@ -85,8 +85,7 @@ def Process_image(detection_threshold, recognition_threshold):
               p1 = np.append(p1, characters[i])
             else:
               p2 = np.append(p2, characters[i])
-        
-        plate = p1+p2
+
         print(f'phan 1: {p1}, phan 2: {p2}')
       except Exception as e:
         print(e)
@@ -104,7 +103,7 @@ def Streaming(streaming_server):
 def run(threshold1, threshold2):
 
   PICAM2.pre_callback = draw_bound
-  PICAM2.configure(PICAM2.create_video_configuration(main={"size": CAM_SIZE, 'format': 'RGB888'}))
+  PICAM2.configure(PICAM2.create_video_configuration(main={"size": cvc.CAM_SIZE, 'format': 'RGB888'}))
   PICAM2.start_recording(JpegEncoder(), FileOutput(stream1))
 
   t1 = Thread(target=Streaming, args=(streaming_server,))
@@ -115,13 +114,13 @@ def run(threshold1, threshold2):
   while True:
     i = input()
     if (i == 'q'):
-      QUIT_SIGNAL = True
+      cvc.QUIT_SIGNAL = True
       streaming_server.shutdown()
       break
     elif (i == 'p'):
-      REQUEST = True
+      cvc.REQUEST = True
     elif (i == 's'):
-      REQUEST = False
+      cvc.REQUEST = False
   
   t1.join()
   t2.join()
@@ -158,19 +157,12 @@ if __name__ == '__main__':
   )
   args = parser.parse_args()
 
-  QUIT_SIGNAL = False
-  REQUEST = False
-
-  FOCUS_SIZE = np.array((320, 320))
-  CAM_SIZE = np.array((640, 480))
-  PROCESS_ORG_COOR = (CAM_SIZE-FOCUS_SIZE)//2
-  PROCESS_RECT = np.append(PROCESS_ORG_COOR, PROCESS_ORG_COOR+FOCUS_SIZE)
-
   with open(args.label, 'r') as f:
     LABELS = np.array([line.strip() for line in f], str)
-  LP_DETECTION = LP_Detection(args.model1 , FOCUS_SIZE)
-  LP_OCR = LP_Ocr(args.model2, LABELS, FOCUS_SIZE)
+  LP_DETECTION = LP_Detection(args.model1 , cvc.FOCUS_SIZE)
+  LP_OCR = LP_Ocr(args.model2, LABELS, cvc.FOCUS_SIZE)
   
   PICAM2 = Picamera2()
+
   run(args.threshold1, args.threshold2)
-# python raspberrypi/Streaming.py --model1 models/lp_detection_model.tflite --model2 models/lpcharacters_detection_lite0_model.tflite --threshold1 0.8 --threshold2 0.3 --label models/labelmap.txt
+# python test.py --model1 models/lp_detection_model.tflite --model2 models/lpcharacters_detection_lite0_model.tflite --threshold1 0.8 --threshold2 0.3 --label models/labelmap.txt

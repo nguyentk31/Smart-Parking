@@ -3,7 +3,7 @@ import logging
 import socketserver
 from http import server
 from threading import Condition
-import raspberrypi.utils.common_vars_consts as cvc
+import utils.common_vars_consts as cvc
 
 class StreamingOutput(io.BufferedIOBase):
   def __init__(self):

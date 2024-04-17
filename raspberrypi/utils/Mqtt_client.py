@@ -1,6 +1,6 @@
 import json
 from paho.mqtt import client
-import raspberrypi.utils.common_vars_consts as cvc
+import utils.common_vars_consts as cvc
 
 class MQTT_Client:
   def __init__(self, broker, port, pub_topic, sub_topic, client_id, username, password) -> None:
@@ -24,7 +24,7 @@ class MQTT_Client:
     def on_message(client, userdata, msg):
       m_decode = str(msg.payload.decode('utf-8', 'ignore'))
       json_recv = json.loads(m_decode)
-      print(f'Received {json_recv['message']} from {msg.topic} topic')
+      print(f'Received {json_recv["message"]} from {msg.topic} topic')
       if (json_recv['request'] == 1):
         cvc.REQUEST = True
 

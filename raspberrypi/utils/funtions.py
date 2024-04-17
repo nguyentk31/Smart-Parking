@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
-import raspberrypi.utils.common_vars_consts as cvc
-from raspberrypi.utils.LP_Recognition import LP_Detection, LP_Ocr
+import common_vars_consts as cvc
+from utils.lp_recognition import LP_Detection, LP_Ocr
 
 # Read labelmap.txt file
 with open(cvc.LABEL_FILEPATH, 'r') as f:

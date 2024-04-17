@@ -2,10 +2,10 @@ import argparse
 from time import sleep
 import cv2
 from threading import Thread
-from Streaming import stream, streaming_server
-from raspberrypi.utils.Mqtt_client import MQTT_Client
-from raspberrypi.utils.funtions import detect_lp, ocr_lp
-import raspberrypi.utils.common_vars_consts as cvc
+from utils.stream_main import stream, streaming_server
+from utils.mqtt_client import MQTT_Client
+from utils.funtions import detect_lp, ocr_lp
+import utils.common_vars_consts as cvc
 
 from picamera2 import Picamera2, MappedArray
 from picamera2.encoders import JpegEncoder
@@ -156,11 +156,7 @@ if __name__ == '__main__':
                             cvc.MQTT_INFO['client_id'],
                             cvc.MQTT_INFO['username'],
                             cvc.MQTT_INFO['password'])
-  
-  DETECTED = {'time': 0, 'plate': ''}
-  QUIT_SIGNAL = False
 
   run(args.detection_threshold, args.recognition_threshold, args.review)
 
-# python raspberrypi/test/main.py --model1 models/lp_detection_model.tflite --model2 models/lpcharacters_detection_lite0_model.tflite --threshold1 0.8 --threshold2 0.3 --label models/labelmap.txt
-# python raspberrypi/run/main.py --detection_threshold 0.8 --recognition_threshold 0.3 -review
+# python main.py --detection_threshold 0.8 --recognition_threshold 0.3 -review
