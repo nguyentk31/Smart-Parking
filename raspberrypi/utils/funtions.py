@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
-import common_vars_consts as cvc
+import requests
+import utils.common_vars_consts as cvc
 from utils.lp_recognition import LP_Detection, LP_Ocr
 
 # Read labelmap.txt file
@@ -71,3 +72,18 @@ def ocr_lp(plate_image, threshold):
 
   # return 2 part of license plate
   return (p1, p2)
+
+def post_data(image, data):
+  image_byte = cv2.imencode('.jpg', image)[1].tobytes()
+  files = {'log': ('image.jpg', image_byte, 'image/jpg')}
+  body = {
+    'message': 'recognized license-plate',
+    'data': data
+  }
+  try:
+    rsp = requests.post('http://mynode:8800/data', data=body, files=files)
+  except Exception as e:
+    print('Error:')
+    print(e)
+  else:
+    print(rsp.text)

@@ -33,6 +33,15 @@ def Process_image(detection_threshold, recognition_threshold):
           continue
 
         bbox, score = result
+        if (bbox[0] <= 0):
+          bbox[0] = 0-bbox[2]
+        elif (bbox[1] <= 0):
+          bbox[1] = 0-bbox[3]
+        elif (bbox[2] > cvc.FOCUS_SIZE[0]):
+          bbox[2] = cvc.FOCUS_SIZE[0] + (cvc.FOCUS_SIZE[0]-bbox[0])
+        elif (bbox[3] > cvc.FOCUS_SIZE[1]):
+          bbox[3] = cvc.FOCUS_SIZE[1] + (cvc.FOCUS_SIZE[1]-bbox[1])
+
         (xmin, ymin, xmax, ymax) = bbox + np.tile(cvc.PROCESS_ORG_COOR, 2)
         ctx = (xmin + xmax) // 2 
         cty = (ymin + ymax) // 2
@@ -102,7 +111,7 @@ def Streaming(streaming_server):
 
 def run(threshold1, threshold2):
 
-  PICAM2.pre_callback = draw_bound
+  PICAM2.post_callback = draw_bound
   PICAM2.configure(PICAM2.create_video_configuration(main={"size": cvc.CAM_SIZE, 'format': 'RGB888'}))
   PICAM2.start_recording(JpegEncoder(), FileOutput(stream1))
 

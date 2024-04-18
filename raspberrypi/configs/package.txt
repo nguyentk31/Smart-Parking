@@ -1,5 +1,0 @@
-# sudo apt update && sudo apt upgrade -y
-# sudo apt install -y python3-pip ffmpeg
-opencv-python
-tflite-runtime
-paho-mqtt

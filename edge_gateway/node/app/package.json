@@ -1,0 +1,16 @@
+{
+  "name": "edge_server",
+  "version": "1.0.0",
+  "description": "IOT edge server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "iot",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "mqtt": "^5.5.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}

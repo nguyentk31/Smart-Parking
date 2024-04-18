@@ -4,7 +4,7 @@ import cv2
 from threading import Thread
 from utils.stream_main import stream, streaming_server
 from utils.mqtt_client import MQTT_Client
-from utils.funtions import detect_lp, ocr_lp
+from utils.funtions import detect_lp, ocr_lp, post_data
 import utils.common_vars_consts as cvc
 
 from picamera2 import Picamera2, MappedArray
@@ -55,9 +55,10 @@ def Process_image(detection_threshold, recognition_threshold):
           if (cvc.DETECTED['time'] == 2):
             cvc.DETECTED['plate'] = ''
             cvc.DETECTED['time'] = 0
-            # Sent result to MQTT Broker
+            # post result to edge gateway
             data = {'part1': p1, 'part2': p2}
-            MQTT_CLIENT.publish('recognize done.', data)
+            post_data(image, data)
+            sleep(1)
             cvc.REQUEST = False
           else:
             cvc.DETECTED['time'] += 1
@@ -84,6 +85,7 @@ def Streaming(streaming_server):
 # Start MQTT client (connect to MQTT Broker)
 def MQTT_Start(mqtt_client):
   try:
+    MQTT_CLIENT.subscribe('iot/request')
     MQTT_CLIENT.start()
     print('Stop Mqtt client!')
   except Exception as e:
