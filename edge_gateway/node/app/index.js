@@ -13,7 +13,7 @@ const client = mqtt.connect('mqtt://mqtt_broker:1883', {
 })
 
 client.on("connect", () => {
-  client.subscribe("test", (err) => {
+  client.subscribe("test_topic", (err) => {
     if (err) {
       console.log(err)
     } else {
@@ -22,7 +22,6 @@ client.on("connect", () => {
     client.on('message', function(topic, message, packet) {
       console.log('topic: '+topic)
       console.log('message: '+message)
-      console.log('packet: '+packet)
     });
   });
 });
@@ -47,7 +46,7 @@ app.listen(port, () => {
 
 app.post('/data',upload.single('log'),(req,res)=>{
   const data = JSON.parse(JSON.stringify(req.body));
-  console.log(data.message);
+  console.log(data);
   console.log(req.file.path)
   res.status(200).json("ok1")
 })
