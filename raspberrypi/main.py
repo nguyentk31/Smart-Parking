@@ -1,5 +1,6 @@
 import argparse
-from time import sleep
+import json
+from time import sleep, strftime
 import cv2
 from threading import Thread
 from utils.stream_main import stream, streaming_server
@@ -11,20 +12,26 @@ from picamera2 import Picamera2, MappedArray
 from picamera2.encoders import JpegEncoder
 from picamera2.outputs import FileOutput
 
-# Draw focus arae
+# Write timestamp and draw focus arae
 def draw_bound(request):
+  timestamp = strftime("%Y-%m-%d %X")
   with MappedArray(request, "main") as m:
-    cv2.rectangle(m.array, cvc.PROCESS_RECT[0:2], cvc.PROCESS_RECT[2:4], (0, 0, 255), 1)
+    cv2.putText(m.array, timestamp, (0, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    # Draw focus arae
+    tmp_image = m.array.copy()
+    cv2.rectangle(tmp_image, cvc.PROCESS_RECT[0:2], cvc.PROCESS_RECT[2:4], (0, 0, 255), 1)
+    stream.write(tmp_image)
 
 # License plate recognition
 def Process_image(detection_threshold, recognition_threshold):
+  detected = {'time': 0, 'plate': ''}
   while True:
     # If QUIT_SIGNAL set True, then end program
-    if (cvc.QUIT_SIGNAL):
+    if (QUIT_SIGNAL):
       print('Stop process image!')
       break
     # If REQUEST set True, then proccess image (start license plate recognition)
-    elif (cvc.REQUEST):
+    elif (REQUEST):
       try:
         # Capture image
         image = PICAM2.capture_array()
@@ -48,28 +55,28 @@ def Process_image(detection_threshold, recognition_threshold):
 
         # If OCR the same license plate 3 times, then stop recognition and sent result to MQTT broker
         plate = p1+p2
-        if (cvc.DETECTED['plate'] == ''):
-          cvc.DETECTED['plate'] = plate
-          cvc.DETECTED['time'] += 1
-        elif (cvc.DETECTED['plate'] == plate):
-          if (cvc.DETECTED['time'] == 2):
-            cvc.DETECTED['plate'] = ''
-            cvc.DETECTED['time'] = 0
+        if (detected['plate'] == ''):
+          detected['plate'] = plate
+          detected['time'] += 1
+        elif (detected['plate'] == plate):
+          if (detected['time'] == 2):
+            detected['plate'] = ''
+            detected['time'] = 0
             # post result to edge gateway
             data = {'part1': p1, 'part2': p2}
             post_data(image, data)
             sleep(1)
-            cvc.REQUEST = False
+            REQUEST = False
           else:
-            cvc.DETECTED['time'] += 1
+            detected['time'] += 1
         # if OCR new license plate then assign plate and set time to 0
         else:
-          cvc.DETECTED['plate'] = plate
-          cvc.DETECTED['time'] = 1
+          detected['plate'] = plate
+          detected['time'] = 1
       # if catch exception then stop processing image
       except Exception as e:
         print(e)
-        cv2.REQUEST = False
+        REQUEST = False
     else:
       sleep(1)
 
@@ -83,13 +90,22 @@ def Streaming(streaming_server):
     print(e)
 
 # Start MQTT client (connect to MQTT Broker)
-def MQTT_Start(mqtt_client):
+def MQTT_Start():
   try:
-    MQTT_CLIENT.subscribe('iot/request')
-    MQTT_CLIENT.start()
+    MQTT_CLIENT.subscribe(cvc.MQTT_INFO['sub_topic'])
+    MQTT_CLIENT.loop_forever()
     print('Stop Mqtt client!')
   except Exception as e:
     print(e)
+
+# Define MQTT on_message()
+def mqtt_on_message(client, userdata, msg):
+  global REQUEST
+  m_decode = str(msg.payload.decode('utf-8', 'ignore'))
+  json_recv = json.loads(m_decode)
+  print(f'Received {json_recv["message"]} from {msg.topic} topic')
+  if (msg.topic == cvc.MQTT_INFO['sub_topic'] and json_recv['request'] == 1):
+    REQUEST = True
 
 
 def run(detection_threshold, recognition_threshold, review):
@@ -99,7 +115,7 @@ def run(detection_threshold, recognition_threshold, review):
   if (review):
     PICAM2.pre_callback = draw_bound
     PICAM2.configure(PICAM2.create_video_configuration(main))
-    PICAM2.start_recording(JpegEncoder(), FileOutput(stream))
+    PICAM2.start_recording(JpegEncoder(), FileOutput(None))
     threads.append(Thread(target=Streaming, args=(streaming_server,)))
   else:
     PICAM2.configure(PICAM2.create_still_configuration(main))
@@ -112,12 +128,13 @@ def run(detection_threshold, recognition_threshold, review):
     t.start()
 
   # Read input
+  global QUIT_SIGNAL
   while True:
     i = input()
     # if input is q(uit) then send QUIT_SIGNAL and stop all threads and end program
     if (i == 'q'):
-      cvc.QUIT_SIGNAL = True
-      MQTT_CLIENT.stop()
+      QUIT_SIGNAL = True
+      MQTT_CLIENT.loop_stop()
       break
 
   if (review):
@@ -150,14 +167,16 @@ if __name__ == '__main__':
   )
   args = parser.parse_args()
 
+  QUIT_SIGNAL = False
+  REQUEST = False
+
   PICAM2 = Picamera2()
   MQTT_CLIENT = MQTT_Client(cvc.MQTT_INFO['broker'],
                             cvc.MQTT_INFO['port'],
-                            cvc.MQTT_INFO['publish_topic'],
-                            cvc.MQTT_INFO['subcribe_topic'],
                             cvc.MQTT_INFO['client_id'],
                             cvc.MQTT_INFO['username'],
-                            cvc.MQTT_INFO['password'])
+                            cvc.MQTT_INFO['password'],
+                            mqtt_on_message)
 
   run(args.detection_threshold, args.recognition_threshold, args.review)
 

@@ -4,12 +4,8 @@ import requests
 import utils.common_vars_consts as cvc
 from utils.lp_recognition import LP_Detection, LP_Ocr
 
-# Read labelmap.txt file
-with open(cvc.LABEL_FILEPATH, 'r') as f:
-  LABELS = np.array([line.strip() for line in f], str)
-
-LP_DETECTION = LP_Detection(cvc.LP_DETECTION_MODEL_PATH , cvc.FOCUS_SIZE)
-LP_OCR = LP_Ocr(cvc.LP_OCR_MODEL_PATH, LABELS, cvc.FOCUS_SIZE)
+LP_DETECTION = LP_Detection(cvc.LP_DETECTION_MODEL_PATH)
+LP_OCR = LP_Ocr(cvc.LP_OCR_MODEL_PATH, cvc.LABEL_FILEPATH)
 
 # License plate detection function
 def detect_lp(image, threshold):
@@ -28,8 +24,8 @@ def detect_lp(image, threshold):
   d = max((org_xmax-org_xmin)//2, (org_ymax-org_ymin)//2)
   squares_xmin, squares_xmax, squares_ymin, squares_ymax = ctx - d, ctx + d, cty - d, cty + d
   try:
-    # Resize license plate image to focus to run ocr model
-    plate_image = cv2.resize(image[squares_ymin:squares_ymax, squares_xmin:squares_xmax], cvc.FOCUS_SIZE)
+    # Crop license plate image to run ocr model
+    plate_image = image[squares_ymin:squares_ymax, squares_xmin:squares_xmax]
   except Exception as e:
     print(e)
     print('plate image coordinates invalid!')
@@ -47,11 +43,11 @@ def ocr_lp(plate_image, threshold):
     return None
 
   # Get order of characters from left to right
-  xmins = bboxes[:, 1]
+  xmins = bboxes[:, 0]
   idx = np.argsort(xmins)
 
-  ymins = bboxes[:, 0]
-  ymaxs = bboxes[:, 2]
+  ymins = bboxes[:, 1]
+  ymaxs = bboxes[:, 3]
   characters_heights_min = np.min(ymaxs-ymins)
   ymin_min = np.min(ymins)
   ymin_max = np.max(ymins)
@@ -59,8 +55,8 @@ def ocr_lp(plate_image, threshold):
   # then it would be 2 line license plate. if not, it would be 1 line license plate
   if (ymin_max - ymin_min < characters_heights_min):
       line = characters[idx]
-      p1 = ''.join(line[0:4])
-      p2 = ''.join(line[4:])
+      p1 = ''.join(line[0:3])
+      p2 = ''.join(line[3:])
   else:
     p1 = p2 = np.empty((0), str)
     ymin_avr = (ymin_max + ymin_min) / 2
