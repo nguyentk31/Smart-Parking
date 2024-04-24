@@ -46,7 +46,8 @@ app.listen(port, () => {
 
 app.post('/data',upload.single('log'),(req,res)=>{
   const data = JSON.parse(JSON.stringify(req.body));
-  console.log(data);
-  console.log(req.file.path)
-  res.status(200).json("ok1")
+  console.log(`direction: ${data.direction}`);
+  console.log(`license-plate: ${data.lp_part1}-${data.lp_part2}`);
+  console.log(`saved file at: ${req.file.path}`)
+  res.status(200).json("okla")
 })
