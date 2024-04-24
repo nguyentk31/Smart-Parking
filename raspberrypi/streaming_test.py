@@ -176,4 +176,4 @@ if __name__ == '__main__':
   PICAM2 = Picamera2()
 
   run(args.threshold1, args.threshold2)
-# python streaming_test.py --model1 models/lp_detection_model.tflite --model2 models/lpcharacters_detection_lite0_model.tflite --threshold1 0.8 --threshold2 0.3 --label models/labelmap.txt
+# python streaming_test.py --model1 models/lp_detection_model.tflite --model2 models/lpcharacters_detection_lite0_model.tflite --threshold1 0.7 --threshold2 0.3 --label models/labelmap.txt
