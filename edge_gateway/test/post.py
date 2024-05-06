@@ -2,7 +2,6 @@ import cv2
 import requests
 
 def post_data(API, image, direction, lisence_plate):
-  API_test = 'http://localhost:8800/data'
   image_byte = cv2.imencode('.jpg', image)[1].tobytes()
   files = {'log': ('image.jpg', image_byte, 'image/jpg')}
   data = {
@@ -11,7 +10,6 @@ def post_data(API, image, direction, lisence_plate):
     'lp_part2': lisence_plate[1]
   }
   try:
-    # rsp = requests.post(API_test, data=data, files=files)
     if direction == 'in':
       API += 'createParking'
       rsp = requests.post(API, data=data, files=files)
@@ -26,7 +24,7 @@ def post_data(API, image, direction, lisence_plate):
 
 if __name__ == '__main__':
   API_SERVER = 'http://localhost:3000/api/parking/'
-  image = cv2.imread('lp_dataset/anh1.jpg')
-  direction = 'in'
-  lisence_plate = ['51A9', '224466']
+  image = cv2.imread('lp_dataset/carrr.jpg')
+  direction = 'out'
+  lisence_plate = ['51A', '13883']
   post_data(API_SERVER, image, direction, lisence_plate)

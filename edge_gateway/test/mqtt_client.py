@@ -33,7 +33,7 @@ class MQTT_Client:
   def publish(self, pub_topic, msg, data):
     obj_sent = {
       'message': msg,
-      'data': data
+      'slot': data
     }
     json_sent = json.dumps(obj_sent)
     result = self.client.publish(pub_topic, json_sent)
@@ -70,4 +70,4 @@ if __name__ == '__main__':
       mqtt_client.stop()
       break
     if (i == 'p'):
-      mqtt_client.publish('test_topic', 'anything', {123: 345})
+      mqtt_client.publish('test_topic', "Parking System", "A1")

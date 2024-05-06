@@ -9,7 +9,10 @@
   "author": "iot",
   "license": "ISC",
   "dependencies": {
+    "cloudinary": "^2.2.0",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "mongoose": "^8.3.3",
     "mqtt": "^5.5.2",
     "multer": "^1.4.5-lts.1"
   }
