@@ -10,12 +10,7 @@ def post_data(API, image, direction, lisence_plate):
     'lp_part2': lisence_plate[1]
   }
   try:
-    if direction == 'in':
-      API += 'createParking'
       rsp = requests.post(API, data=data, files=files)
-    else:
-      API += 'updateParkingCheckOut'
-      rsp = requests.patch(API, data=data, files=files)
   except Exception as e:
     print('Error:')
     print(e)
@@ -23,8 +18,8 @@ def post_data(API, image, direction, lisence_plate):
     print(rsp.text)
 
 if __name__ == '__main__':
-  API_SERVER = 'http://localhost:3000/api/parking/'
+  API_SERVER = 'http://localhost:8800/api/parking/'
   image = cv2.imread('lp_dataset/carrr.jpg')
-  direction = 'out'
+  direction = 'in'
   lisence_plate = ['51A', '13883']
   post_data(API_SERVER, image, direction, lisence_plate)
