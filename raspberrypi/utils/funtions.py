@@ -72,12 +72,8 @@ def ocr_lp(plate_image, threshold):
 def post_data(image, data):
   image_byte = cv2.imencode('.jpg', image)[1].tobytes()
   files = {'log': ('image.jpg', image_byte, 'image/jpg')}
-  body = {
-    'message': 'recognized license-plate',
-    'data': data
-  }
   try:
-    rsp = requests.post('http://mynode:8800/data', data=body, files=files)
+    rsp = requests.post(cvc.GW_API, data=data, files=files)
   except Exception as e:
     print('Error:')
     print(e)

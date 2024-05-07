@@ -1,6 +1,9 @@
 import random
 import numpy as np
 
+DIRECTION = 'IN'
+GW_API = 'http://mynode:8800/data'
+
 FOCUS_SIZE = np.array((320, 320))
 CAM_SIZE = np.array((640, 480))
 PROCESS_ORG_COOR = (CAM_SIZE-FOCUS_SIZE)//2

@@ -63,7 +63,11 @@ def Process_image(detection_threshold, recognition_threshold):
             detected['plate'] = ''
             detected['time'] = 0
             # post result to edge gateway
-            data = {'part1': p1, 'part2': p2}
+            data = {
+              'direction': cvc.DIRECTION,
+              'lp_part1': p1,
+              'lp_part2': p2
+            }
             post_data(image, data)
             sleep(1)
             REQUEST = False
