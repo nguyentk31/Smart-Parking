@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import requests
 import utils.common_vars_consts as cvc
-from utils.lp_recognition import LP_Detection, LP_Ocr
+from utils.LP_Recognition import LP_Detection, LP_Ocr
 
 LP_DETECTION = LP_Detection(cvc.LP_DETECTION_MODEL_PATH)
 LP_OCR = LP_Ocr(cvc.LP_OCR_MODEL_PATH, cvc.LABEL_FILEPATH)
@@ -53,18 +53,19 @@ def ocr_lp(plate_image, threshold):
   ymin_max = np.max(ymins)
   # If the distance between ymin_max and ymin_min > character_height_min,
   # then it would be 2 line license plate. if not, it would be 1 line license plate
+  p1 = ''
+  p2 = ''
   if (ymin_max - ymin_min < characters_heights_min):
       line = characters[idx]
       p1 = ''.join(line[0:3])
       p2 = ''.join(line[3:])
   else:
-    p1 = p2 = np.empty((0), str)
     ymin_avr = (ymin_max + ymin_min) / 2
     for i in idx:
       if ymins[i] < ymin_avr:
-        p1 = np.append(p1, characters[i])
+        p1 += characters[i]
       else:
-        p2 = np.append(p2, characters[i])
+        p2 += characters[i]
 
   # return 2 part of license plate
   return (p1, p2)

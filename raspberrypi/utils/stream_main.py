@@ -5,6 +5,20 @@ from http import server
 from threading import Condition
 import utils.common_vars_consts as cvc
 
+PAGE = """\
+<html>
+<head>
+<title>My Camera</title>
+</head>
+<body>
+<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+  <h1>Main Camera</h1>
+  <img src="stream">
+</div>
+</body>
+</html>
+"""
+
 class StreamingOutput(io.BufferedIOBase):
   def __init__(self):
     self.frame = None
@@ -19,8 +33,15 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
   def do_GET(self):
     if self.path == '/':
       self.send_response(301)
-      self.send_header('Location', '/stream')
+      self.send_header('Location', '/index.html')
       self.end_headers()
+    elif self.path == '/index.html':
+      content = PAGE.encode('utf-8')
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/html')
+      self.send_header('Content-Length', len(content))
+      self.end_headers()
+      self.wfile.write(content)
     elif self.path == '/stream':
       self.send_response(200)
       self.send_header('Age', 0)
