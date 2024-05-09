@@ -10,12 +10,12 @@ class MQTT_Client:
       else:
         print("Failed to connect, return code %d\n", rc)
 
-    # def on_message(client, userdata, msg):
-    #   m_decode = str(msg.payload.decode('utf-8', 'ignore'))
-    #   json_recv = json.loads(m_decode)
-    #   print(f'Received {json_recv["message"]} from {msg.topic} topic')
-    #   if (msg.topic == 'iot/request' and json_recv['request'] == 1):
-    #     REQUEST = True
+    def on_message(client, userdata, msg):
+      m_decode = str(msg.payload.decode('utf-8', 'ignore'))
+      print(m_decode)
+      # json_recv = json.loads(m_decode)
+      # print(f'Received {json_recv["message"]} from {msg.topic} topic')
+      print(msg)
 
     # When init instance, it will connect to broker
     self.client = client.Client(client_id=client_id, callback_api_version=client.CallbackAPIVersion.VERSION2)
@@ -23,23 +23,19 @@ class MQTT_Client:
     self.client.connect(broker, port)
 
     self.client.on_connect = on_connect
-    # self.client.on_message = on_message
+    self.client.on_message = on_message
 
   # Subcribe function
   def subscribe(self, sub_topic):
     self.client.subscribe(sub_topic)
 
   # Publish function
-  def publish(self, pub_topic, msg, data):
-    obj_sent = {
-      'message': msg,
-      'slot': data
-    }
-    json_sent = json.dumps(obj_sent)
+  def publish(self, pub_topic, data):
+    json_sent = json.dumps(data)
     result = self.client.publish(pub_topic, json_sent)
     status = result[0]
     if status == 0:
-      print(f"Send `{msg}` to topic `{pub_topic}`")
+      print(f"Send msg to topic `{pub_topic}`")
     else:
       print(f"Failed to send message to topic {pub_topic}")
 
@@ -62,7 +58,8 @@ if __name__ == '__main__':
   password = '123456'
 
   mqtt_client = MQTT_Client(broker, port, client_id, username, password)
-  mqtt_client.subscribe('check')
+  # mqtt_client.subscribe('parking_slot')
+  mqtt_client.subscribe('park_in')
   mqtt_client.start(False)
   while True:
     i = input()
@@ -70,4 +67,8 @@ if __name__ == '__main__':
       mqtt_client.stop()
       break
     if (i == 'p'):
-      mqtt_client.publish('test_topic', "Parking System", "A1")
+      # mqtt_client.publish('park_in', "Parking System", "A1")
+      mqtt_client.publish('recognized', {'recognized': 1})
+    elif (i == 'p'):
+      # mqtt_client.publish('park_in', "Parking System", "A1")
+      mqtt_client.publish('park_in', {'recognized': 1})

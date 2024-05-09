@@ -1,16 +1,50 @@
+import random
+from paho.mqtt import client
 import argparse
 import json
 from time import sleep, strftime
 import cv2
 from threading import Thread
 from utils.stream_main import stream, streaming_server
-from utils.mqtt_client import MQTT_Client
-from utils.funtions import detect_lp, ocr_lp, post_data
+from utils.function import detect_lp, ocr_lp, post_data
 import utils.common_vars_consts as cvc
 
 from picamera2 import Picamera2, MappedArray
 from picamera2.encoders import JpegEncoder
 from picamera2.outputs import FileOutput
+
+### GLOBALS
+QUIT_SIGNAL = False
+REQUEST = False
+
+PICAM2 = Picamera2()
+
+# Define MQTT on_message()
+def mqtt_on_message(client, userdata, msg):
+  global REQUEST
+  m_decode = str(msg.payload.decode('utf-8', 'ignore'))
+  json_recv = json.loads(m_decode)
+  print(f'Received msg from {msg.topic} topic')
+  if msg.topic == cvc.MQTT_SUB:
+    REQUEST = bool(json_recv['status'])
+    print('Parking gate status is: ', REQUEST)
+
+# Define MQTT on_connect()
+def on_connect(client, userdata, flags, rc, properties):
+  if rc == 0:
+    print("Connected to MQTT Broker!")
+    mqtt.subscribe(cvc.MQTT_SUB)
+  else:
+    print("Failed to connect, return code %d\n", rc)
+
+mqtt = client.Client(client_id=f'python-mqtt-{random.randint(0, 1000)}', callback_api_version=client.CallbackAPIVersion.VERSION2)
+mqtt.username_pw_set(cvc.MQTT_USERNAME,  cvc.MQTT_PASSWORD)
+try:
+  mqtt.connect(cvc.MQTT_BROKER, cvc.MQTT_PORT)
+except:
+  print('mqtt connection timeout')
+mqtt.on_connect = on_connect
+mqtt.on_message = mqtt_on_message
 
 # Write timestamp and draw focus arae
 def draw_bound(request):
@@ -20,11 +54,13 @@ def draw_bound(request):
     # Draw focus arae
     tmp_image = m.array.copy()
     cv2.rectangle(tmp_image, cvc.PROCESS_RECT[0:2], cvc.PROCESS_RECT[2:4], (0, 0, 255), 1)
-    stream.write(tmp_image)
+    stream.write(cv2.imencode('.jpeg', tmp_image)[1].tobytes())
 
 # License plate recognition
 def Process_image(detection_threshold, recognition_threshold):
-  detected = {'time': 0, 'plate': ''}
+  global QUIT_SIGNAL, REQUEST
+  detected_time = 0
+  detected_plate = 'noset'
   while True:
     # If QUIT_SIGNAL set True, then end program
     if (QUIT_SIGNAL):
@@ -55,13 +91,16 @@ def Process_image(detection_threshold, recognition_threshold):
 
         # If OCR the same license plate 3 times, then stop recognition and sent result to MQTT broker
         plate = p1+p2
-        if (detected['plate'] == ''):
-          detected['plate'] = plate
-          detected['time'] += 1
-        elif (detected['plate'] == plate):
-          if (detected['time'] == 2):
-            detected['plate'] = ''
-            detected['time'] = 0
+        if (detected_plate != plate):
+          detected_plate = plate
+          detected_time = 1
+        else:
+          # if (detected_time < 2):
+          if (detected_time < 1):
+            detected_time += 1
+          else:
+            detected_plate = 'noset'
+            detected_time = 0
             # post result to edge gateway
             data = {
               'direction': cvc.DIRECTION,
@@ -69,16 +108,12 @@ def Process_image(detection_threshold, recognition_threshold):
               'lp_part2': p2
             }
             post_data(image, data)
-            sleep(1)
+            sleep(3)
             REQUEST = False
-          else:
-            detected['time'] += 1
-        # if OCR new license plate then assign plate and set time to 0
-        else:
-          detected['plate'] = plate
-          detected['time'] = 1
+
       # if catch exception then stop processing image
       except Exception as e:
+        print('error:')
         print(e)
         REQUEST = False
     else:
@@ -93,53 +128,44 @@ def Streaming(streaming_server):
   except Exception as e:
     print(e)
 
-# Start MQTT client (connect to MQTT Broker)
-def MQTT_Start():
+def run(detection_threshold, recognition_threshold, review):
+  global mqtt, PICAM2, QUIT_SIGNAL, REQUEST
+  # Start MQTT client (connect to MQTT Broker)
   try:
-    MQTT_CLIENT.subscribe(cvc.MQTT_INFO['sub_topic'])
-    MQTT_CLIENT.loop_forever()
-    print('Stop Mqtt client!')
+    mqtt.loop_start()
+    print('Start Mqtt client!')
   except Exception as e:
     print(e)
 
-# Define MQTT on_message()
-def mqtt_on_message(client, userdata, msg):
-  global REQUEST
-  m_decode = str(msg.payload.decode('utf-8', 'ignore'))
-  json_recv = json.loads(m_decode)
-  print(f'Received {json_recv["message"]} from {msg.topic} topic')
-  if (msg.topic == cvc.MQTT_INFO['sub_topic'] and json_recv['request'] == 1):
-    REQUEST = True
-
-
-def run(detection_threshold, recognition_threshold, review):
   main = {'size': (640, 480), 'format': 'RGB888'}
   threads = []
   # if review flag is set, then start streaming server thread 
   if (review):
     PICAM2.pre_callback = draw_bound
     PICAM2.configure(PICAM2.create_video_configuration(main))
-    PICAM2.start_recording(JpegEncoder(), FileOutput(None))
+    PICAM2.start_recording(JpegEncoder(), FileOutput('test.h264'))
+    # PICAM2.start_recording(JpegEncoder(), FileOutput(None))
     threads.append(Thread(target=Streaming, args=(streaming_server,)))
   else:
     PICAM2.configure(PICAM2.create_still_configuration(main))
     PICAM2.start()
   # Run Process image and MQTT Client in new threads
   threads.append(Thread(target=Process_image, args=(detection_threshold, recognition_threshold,)))
-  threads.append(Thread(target=MQTT_Start, args=()))
   
   for t in threads:
     t.start()
 
   # Read input
-  global QUIT_SIGNAL
   while True:
     i = input()
     # if input is q(uit) then send QUIT_SIGNAL and stop all threads and end program
     if (i == 'q'):
       QUIT_SIGNAL = True
-      MQTT_CLIENT.loop_stop()
+      mqtt.loop_stop()
+      print('Stop Mqtt client!')
       break
+    if (i == 's'):
+      REQUEST = False
 
   if (review):
     streaming_server.shutdown()
@@ -171,17 +197,6 @@ if __name__ == '__main__':
   )
   args = parser.parse_args()
 
-  QUIT_SIGNAL = False
-  REQUEST = False
-
-  PICAM2 = Picamera2()
-  MQTT_CLIENT = MQTT_Client(cvc.MQTT_INFO['broker'],
-                            cvc.MQTT_INFO['port'],
-                            cvc.MQTT_INFO['client_id'],
-                            cvc.MQTT_INFO['username'],
-                            cvc.MQTT_INFO['password'],
-                            mqtt_on_message)
-
   run(args.detection_threshold, args.recognition_threshold, args.review)
 
-# python main.py --detection_threshold 0.8 --recognition_threshold 0.3 -review
+# python main.py --detection_threshold 0.8 --recognition_threshold 0.4 -review

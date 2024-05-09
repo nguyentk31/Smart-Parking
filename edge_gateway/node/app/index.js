@@ -32,34 +32,30 @@ const client = mqtt.connect("mqtt://mqtt_broker:1883", {
 });
 
 client.on("connect", () => {
-  client.subscribe("test_topic", (err) => {
+  client.subscribe("paking_slots", (err) => {
     if (err) {
       console.log(err);
     } else {
       console.log("mqtt connected!");
+      client.on("message", async function (topic, message) {
+        try {
+          console.log("topic: " + topic);
+          const data = JSON.parse(message.toString());
+          console.log(data.slot);
+  
+          const slot = await Slot.findOne({ name: data.slot });
+          if (!slot) {
+            throw new Error("Slot not found!");
+          }
+  
+          slot.status = data.status;
+  
+          await slot.save();
+        } catch (error) {
+          console.log(error);
+        }
+      });
     }
-    client.on("message", async function (topic, message) {
-      try {
-        console.log("topic: " + topic);
-        const data = JSON.parse(message.toString());
-        console.log(data.slot);
-
-        const slot = await Slot.findOne({ name: data.slot });
-        if (!slot) {
-          throw new Error("Slot not found!");
-        }
-
-        if (slot.status === "unavailable") {
-          slot.status = "available";
-        } else {
-          slot.status = "unavailable";
-        }
-
-        await slot.save();
-      } catch (error) {
-        console.log(error);
-      }
-    });
   });
 });
 
@@ -79,6 +75,12 @@ const upload = multer({ storage: storage, fileFilter: imageFilter });
 
 const app = express();
 app.use(express.json());
+
+app.use(function (req,_res,next) {
+  console.log(`URL ${req.url}`);
+  console.log(`Method ${req.method}`);
+  next();
+})
 port = 8800;
 
 const getImageParking = async (req, res, next) => {
@@ -170,10 +172,18 @@ const createOrUpdateParking = async (req, res) => {
       await parking.save();
     }
 
+    // MQTT Publish to recognized message
+    client.publish('parking_servo', {message: 'Parking Servo', status: 1}, { qos: 0, retain: false }, (error) => {
+      if (error) {
+        console.error(error)
+      }
+    })
+
     res.status(201).json({
       status: "success",
       message: "Parking check in!",
     });
+
   } catch (error) {
     res.status(400).json({
       status: "error",

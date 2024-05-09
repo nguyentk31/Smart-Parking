@@ -156,3 +156,7 @@ def main():
 
 if __name__ == '__main__':
   main()
+
+# python .\utils\check_dataset.py .\csvfiles\lp_dataset_assigned.csv -nolabel
+# python .\utils\check_dataset.py .\csvfiles\lp_characters_dataset_assigned.csv
+# python .\utils\check_dataset.py .\csvfiles\lp_characters_dataset_assigned.csv --labels 3
