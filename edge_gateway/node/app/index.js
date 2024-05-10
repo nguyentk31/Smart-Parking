@@ -77,11 +77,11 @@ const upload = multer({ storage: storage, fileFilter: imageFilter });
 const app = express();
 app.use(express.json());
 
-app.use(function (req,_res,next) {
+app.use(function (req, _res, next) {
   console.log(`URL ${req.url}`);
   console.log(`Method ${req.method}`);
   next();
-})
+});
 port = 8800;
 
 const getImageParking = async (req, res, next) => {
@@ -178,13 +178,12 @@ const createOrUpdateParking = async (req, res) => {
       if (error) {
         console.error(error)
       }
-    })
+    );
 
     res.status(201).json({
       status: "success",
       message: "Parking check in!",
     });
-
   } catch (error) {
     res.status(400).json({
       status: "error",

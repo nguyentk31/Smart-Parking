@@ -90,7 +90,7 @@ function App() {
             </AdminProtect>
           }
         >
-          <Route index element={<Dashboard />} />
+          <Route index element={<Dashboard socket={socket} />} />
           {/* <Route path="allotment" element={<Allotment />} /> */}
           <Route path="allotment" element={<Area />} />
           <Route
