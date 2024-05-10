@@ -71,6 +71,50 @@ exports.getParking = async (req, res) => {
   }
 };
 
+exports.getParkingStats = async (_req, res) => {
+  try {
+    const stats = await Parking.aggregate([
+      {
+        $match: {
+          status: "completed",
+        },
+      },
+      {
+        $group: {
+          _id: { month: { $month: "$checkOut" }, year: { $year: "$checkOut" } },
+          totalPayment: { $sum: "$totalPayment" },
+          totalParking: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          month: "$_id.month",
+          year: "$_id.year",
+          totalPayment: 1,
+          totalParking: 1,
+        },
+      },
+      {
+        $sort: {
+          year: 1,
+          month: 1,
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      status: "success",
+      stats,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
 // exports.createOrUpdateParking = async (req, res) => {
 //   try {
 //     cloudinary.config({
