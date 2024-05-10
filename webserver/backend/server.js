@@ -29,7 +29,37 @@ Slot.watch().on("change", async (change) => {
 
 Parking.watch().on("change", async (change) => {
   const parkings = await Parking.find();
+  const stats = await Parking.aggregate([
+    {
+      $match: {
+        status: "completed",
+      },
+    },
+    {
+      $group: {
+        _id: { month: { $month: "$checkOut" }, year: { $year: "$checkOut" } },
+        totalPayment: { $sum: "$totalPayment" },
+        totalParking: { $sum: 1 },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        month: "$_id.month",
+        year: "$_id.year",
+        totalPayment: 1,
+        totalParking: 1,
+      },
+    },
+    {
+      $sort: {
+        year: 1,
+        month: 1,
+      },
+    },
+  ]);
   socket.emit("sendParking", parkings);
+  socket.emit("sendStats", stats);
 });
 
 mongoose.connect(DB).then(() => {
@@ -52,6 +82,10 @@ socketIo.on("connection", (socket) => {
 
   socket.on("sendParking", (data) => {
     socketIo.emit("receiveParking", data);
+  });
+
+  socket.on("sendStats", (data) => {
+    socketIo.emit("receiveStats", data);
   });
 
   socket.on("disconnect", () => {

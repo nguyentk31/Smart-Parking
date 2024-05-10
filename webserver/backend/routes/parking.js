@@ -11,6 +11,7 @@ const router = express.Router();
 
 // router.patch("/updateParkingSlot", parkingController.updateParkingSlot);
 router.get("/", parkingController.getParkings);
+router.get("/stats", parkingController.getParkingStats);
 router.get("/:id", parkingController.getParking);
 
 module.exports = router;

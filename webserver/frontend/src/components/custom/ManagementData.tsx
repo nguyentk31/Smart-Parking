@@ -56,7 +56,7 @@ export const columnsManagement: ColumnDef<Management>[] = [
           className="w-full ml-2"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Check In
+          Check in
           <ChevronsUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -76,7 +76,7 @@ export const columnsManagement: ColumnDef<Management>[] = [
           className="w-full"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Check Out
+          Check out
           <ChevronsUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -195,7 +195,7 @@ export const columnsManagement: ColumnDef<Management>[] = [
                       <></>
                     ) : (
                       <p className="text-base font-medium">
-                        Check In:
+                        Check in:
                         <span className="ml-2 text-sm text-slate-400">
                           {format(
                             new Date(parking.checkIn),
@@ -230,7 +230,7 @@ export const columnsManagement: ColumnDef<Management>[] = [
                     />
                     {parking.checkOut ? (
                       <p className="text-base font-medium">
-                        Check In:
+                        Check in:
                         <span className="ml-2 text-sm text-slate-400">
                           {format(
                             new Date(parking.checkIn),
@@ -251,7 +251,7 @@ export const columnsManagement: ColumnDef<Management>[] = [
                         className="w-full h-full object-contain rounded-md"
                       />
                       <p className="text-base font-medium">
-                        Check Out:
+                        Check out:
                         <span className="ml-2 text-sm text-slate-400">
                           {parking.checkOut
                             ? format(
