@@ -13,9 +13,9 @@ class MQTT_Client:
     def on_message(client, userdata, msg):
       m_decode = str(msg.payload.decode('utf-8', 'ignore'))
       print(m_decode)
-      # json_recv = json.loads(m_decode)
-      # print(f'Received {json_recv["message"]} from {msg.topic} topic')
-      print(msg)
+      json_recv = json.loads(m_decode)
+      print(f'Received message from {msg.topic} topic')
+      print(f'Status: {json_recv['status']}')
 
     # When init instance, it will connect to broker
     self.client = client.Client(client_id=client_id, callback_api_version=client.CallbackAPIVersion.VERSION2)
@@ -58,8 +58,8 @@ if __name__ == '__main__':
   password = '123456'
 
   mqtt_client = MQTT_Client(broker, port, client_id, username, password)
-  # mqtt_client.subscribe('parking_slot')
-  mqtt_client.subscribe('park_in')
+  mqtt_client.subscribe('parking_slots')
+  mqtt_client.subscribe('parking_gate')
   mqtt_client.start(False)
   while True:
     i = input()
@@ -67,8 +67,5 @@ if __name__ == '__main__':
       mqtt_client.stop()
       break
     if (i == 'p'):
-      # mqtt_client.publish('park_in', "Parking System", "A1")
-      mqtt_client.publish('recognized', {'recognized': 1})
-    elif (i == 'p'):
-      # mqtt_client.publish('park_in', "Parking System", "A1")
-      mqtt_client.publish('park_in', {'recognized': 1})
+      # mqtt_client.publish('parking_servo', {'message': 'parking servo', 'status': 1})
+      mqtt_client.publish('parking_slots', {'message': 'parking servo', 'slot': 'A3', 'status': 'available'})

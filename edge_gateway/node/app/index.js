@@ -23,7 +23,7 @@ mongoose.connect(DB).then(() => {
 });
 
 const client = mqtt.connect("mqtt://mqtt_broker:1883", {
-  clientId: `mqtt_${Math.random().toString(16).slice(3)}`,
+  clientId: `mqtt_node_gateway`,
   clean: true,
   connectTimeout: 4000,
   username: "iot",
@@ -37,26 +37,27 @@ client.on("connect", () => {
       console.log(err);
     } else {
       console.log("mqtt connected!");
-      client.on("message", async function (topic, message) {
-        try {
-          console.log("topic: " + topic);
-          const data = JSON.parse(message.toString());
-          console.log(data.slot);
-
-          const slot = await Slot.findOne({ name: data.slot });
-          if (!slot) {
-            throw new Error("Slot not found!");
-          }
-
-          slot.status = data.status;
-
-          await slot.save();
-        } catch (error) {
-          console.log(error);
-        }
-      });
     }
   });
+});
+
+client.on("message", async (topic, message) => {
+  try {
+    console.log("topic: " + topic);
+    const data = JSON.parse(message.toString());
+    console.log(data.slot);
+
+    const slot = await Slot.findOne({ name: data.slot });
+    if (!slot) {
+      throw new Error("Slot not found!");
+    }
+
+    slot.status = data.status;
+
+    await slot.save();
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 const storage = multer.memoryStorage();
@@ -173,14 +174,9 @@ const createOrUpdateParking = async (req, res) => {
     }
 
     // MQTT Publish to recognized message
-    client.publish(
-      "parking_servo",
-      { message: "Parking Servo", status: 1 },
-      { qos: 0, retain: false },
-      (error) => {
-        if (error) {
-          console.error(error);
-        }
+    client.publish('parking_servo', JSON.stringify({message: 'Parking Servo', status: 1}), { qos: 0, retain: false }, (error) => {
+      if (error) {
+        console.error(error)
       }
     );
 
